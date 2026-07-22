@@ -44,7 +44,11 @@ function notifyAddress() {
 }
 
 async function sendMail({ to, subject, html, replyTo }) {
-  return transport.sendMail({ from: fromAddress(), to, subject, html, replyTo });
+  const info = await transport.sendMail({ from: fromAddress(), to, subject, html, replyTo });
+  // Logged so the Vercel logs show what the SMTP server actually accepted —
+  // "the API returned success" is not on its own evidence that mail was sent.
+  console.log(`[mail] to=${to} accepted=${info.accepted?.join(",") || "none"} id=${info.messageId}`);
+  return info;
 }
 
 /** Proves the SMTP credentials work — used by /api/health and the dev script. */

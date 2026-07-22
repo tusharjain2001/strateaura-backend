@@ -16,8 +16,13 @@ const SPEC = {
 };
 
 router.post("/register", rateLimit({ max: 5 }), async (req, res, next) => {
-  // Honeypot: a real person never sees or fills this field.
-  if (req.body?.company) return res.json({ success: true });
+  // Honeypot: a real person never sees or fills this field. It must NOT be
+  // named after an autofill token (company, organization, address...) or the
+  // browser fills it for real visitors and every submission is dropped here.
+  if (req.body?.hpField) {
+    console.warn("[webinar] honeypot tripped — submission dropped");
+    return res.json({ success: true });
+  }
 
   const { values, errors, valid } = validate(req.body, SPEC);
   if (!valid) {
