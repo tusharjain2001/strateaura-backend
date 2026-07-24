@@ -167,38 +167,44 @@ function emailDocument(title, bodyHtml) {
 </html>`;
 }
 
-// A full-bleed email image (used for the sliced brochure bands). Width is fixed
-// at the card size but scales down on narrow phones via max-width:100%.
-function bandImage(file, alt) {
-  return `<img src="${ASSET_BASE}/${file}" alt="${escapeHtml(alt)}" width="650" style="display:block;width:100%;max-width:650px;height:auto;border:0;outline:none;text-decoration:none" />`;
-}
-
 /**
- * Figma 1816:2226 — the "Your StrateAura Brochure is Ready!" email. Fully
- * static (no personalisation), so every word is baked into three stacked PNG
- * bands: text → button → text. Rendering the text as images means iOS Mail
- * can't fade the gold/branded colours. Only the middle band is a link (wraps
- * the "Download Brochure" pill and points at the PDF); `v` is unused.
+ * Figma 1816:2226 — the "Your StrateAura Brochure is Ready!" email. Same hybrid
+ * build as the preview mail: the fade-prone gold pieces (wordmark, heading,
+ * button pill) are PNGs served from /email-assets so iOS Mail can't wash out
+ * their colour, while the body copy stays as live text — which keeps the email
+ * from being an all-image message (a spam signal) and lets it read fine even
+ * before images load. Only the button image links to the PDF; `v` is unused.
  */
 function brochureUserMail(v) {
   const url = brochureUrl();
+  const BODY = "#3d3b36";
+  const MUTED = "#8a8577";
+  const font = "font-family:Helvetica,Arial,sans-serif";
   return emailDocument(
     "Your StrateAura Brochure is Ready",
     `
-  <div style="margin:0;padding:24px;background:#f4f1ea">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="650" align="center" style="max-width:650px;margin:0 auto;border-collapse:collapse">
-      <tr><td style="font-size:0;line-height:0">${bandImage(
-        "brochure-top.png",
-        "Your StrateAura Brochure is Ready! Thank you for requesting the StrateAura brochure. We're pleased to share it with you. Inside, you'll find an overview of our offerings, approach, and the value we bring to our clients. Click the button below to download your brochure."
-      )}</td></tr>
-      <tr><td style="font-size:0;line-height:0"><a href="${url}" target="_blank" style="display:block;text-decoration:none">${bandImage(
-        "brochure-button.png",
-        "Download Brochure"
-      )}</a></td></tr>
-      <tr><td style="font-size:0;line-height:0">${bandImage(
-        "brochure-bottom.png",
-        "If you have any questions or would like to learn more, feel free to reply to this email, we'd be happy to help. Best regards, The StrateAura Team"
-      )}</td></tr>
+  <div style="margin:0;padding:24px;background:#f4f1ea;${font}">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="650" align="center" style="max-width:650px;margin:0 auto;border-collapse:collapse;border-radius:16px;background-color:#fff9ec;background-image:linear-gradient(180deg,#fff5da 0%,#ffffff 100%)">
+      <tr><td style="padding:33px 54px 0;text-align:right">
+        <img src="${ASSET_BASE}/preview-logo.png" alt="StrateAura — Presence by design. Power by default." width="177" style="display:inline-block;width:177px;max-width:60%;height:auto;border:0" />
+      </td></tr>
+      <tr><td style="padding:50px 54px 0">
+        <img src="${ASSET_BASE}/brochure-heading.png" alt="Your StrateAura Brochure is Ready!" width="320" style="display:block;width:320px;max-width:100%;height:auto;border:0" />
+      </td></tr>
+      <tr><td style="padding:28px 54px 0;color:${BODY};font-size:16px;line-height:1.55;${font}">
+        Thank you for requesting the StrateAura brochure.<br /><br />We're pleased to share it with you. Inside, you'll find an overview of our offerings, approach, and the value we bring to our clients.
+      </td></tr>
+      <tr><td style="padding:24px 54px 0;color:${MUTED};font-size:16px;line-height:1.5;${font}">
+        Click the button below to download your brochure.
+      </td></tr>
+      <tr><td style="padding:18px 54px 0">
+        <a href="${url}" target="_blank" style="display:inline-block;text-decoration:none">
+          <img src="${ASSET_BASE}/brochure-button-pill.png" alt="Download Brochure" width="200" style="display:block;width:200px;max-width:100%;height:auto;border:0" />
+        </a>
+      </td></tr>
+      <tr><td style="padding:26px 54px 48px;color:${BODY};font-size:16px;line-height:1.6;${font}">
+        If you have any questions or would like to learn more, feel free to reply to this email, we'd be happy to help.<br /><br />Best regards,<br /><strong>The StrateAura Team</strong>
+      </td></tr>
     </table>
   </div>`
   );
