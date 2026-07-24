@@ -168,10 +168,26 @@ function emailDocument(title, bodyHtml) {
   @media only screen and (max-width: 480px) {
     .sa-px { padding-left: 24px !important; padding-right: 24px !important; }
     .sa-logo { padding-right: 24px !important; }
+    /* Gmail-app dark mode washes the copy out: it lightens dark text but keeps
+       the card's gradient (a background-image it can't recolor) light. Inside
+       Gmail only (the u + .body hack: Gmail turns the body tag into div.body
+       preceded by a u sibling) and only on phones, the copy renders through an
+       exclusion+difference blend stack whose authored inputs (light text,
+       black wrapper backgrounds) are colors Gmail's dark transform leaves
+       untouched — so the stack composites to the SAME dark ink in Gmail light
+       and dark mode. The sa-ink colors are the solved inputs that exclusion()
+       maps onto the design's body/muted inks over the card gradient. Every
+       other client never matches u + .body and keeps the plain inline colors;
+       Gmail with non-Google accounts strips style tags entirely and falls
+       back to today's behaviour. */
+    u + .body .sa-bd { background-color: #000000; mix-blend-mode: exclusion; }
+    u + .body .sa-bd-in { background-color: #000000; mix-blend-mode: difference; }
+    u + .body .sa-ink { color: #c2c7d4 !important; }
+    u + .body .sa-ink2 { color: #7f8390 !important; }
   }
 </style>
 </head>
-<body style="margin:0;padding:0;background:#f4f1ea">${bodyHtml}</body>
+<body class="body" style="margin:0;padding:0;background:#f4f1ea">${bodyHtml}</body>
 </html>`;
 }
 
@@ -207,14 +223,14 @@ function figmaCardMail({ title, headingImg, headingW, bodyHtml, mutedLine, butto
       <tr><td class="sa-px" style="padding:51px 56px 0 59px">
         <img src="${ASSET_BASE}/${headingImg}?v=3" alt="${escapeHtml(title)}" width="${headingW}" style="display:block;width:${headingW}px;max-width:100%;height:auto;border:0" />
       </td></tr>
-      <tr><td class="sa-px" style="padding:29px 56px 0 59px;color:${BODY};${text}">${bodyHtml}</td></tr>
-      <tr><td class="sa-px" style="padding:24px 56px 0 59px;color:${MUTED};${text}">${mutedLine}</td></tr>
+      <tr><td class="sa-px" style="padding:29px 56px 0 59px;color:${BODY};${text}"><div class="sa-bd"><div class="sa-bd-in sa-ink">${bodyHtml}</div></div></td></tr>
+      <tr><td class="sa-px" style="padding:24px 56px 0 59px;color:${MUTED};${text}"><div class="sa-bd"><div class="sa-bd-in sa-ink2">${mutedLine}</div></div></td></tr>
       <tr><td class="sa-px" style="padding:18px 56px 0 59px;font-size:0;line-height:0">
         <a href="${url}" target="_blank" style="display:inline-block;text-decoration:none">
           <img src="${ASSET_BASE}/${buttonImg}?v=3" alt="${escapeHtml(buttonAlt)}" width="${buttonW}" style="display:block;width:${buttonW}px;max-width:100%;height:auto;border:0" />
         </a>
       </td></tr>
-      <tr><td class="sa-px" style="padding:24px 56px 64px 59px;color:${BODY};${text}">${closingHtml}</td></tr>
+      <tr><td class="sa-px" style="padding:24px 56px 64px 59px;color:${BODY};${text}"><div class="sa-bd"><div class="sa-bd-in sa-ink">${closingHtml}</div></div></td></tr>
     </table>
   </div>`
   );
