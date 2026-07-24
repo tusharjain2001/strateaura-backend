@@ -5,6 +5,7 @@ const { verifyTransport } = require("./src/mailer");
 const webinarRoutes = require("./src/routes/webinar");
 const contactRoutes = require("./src/routes/contact");
 const brochureRoutes = require("./src/routes/brochure");
+const bookPreviewRoutes = require("./src/routes/book-preview");
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.get("/api/health", async (req, res) => {
 app.use("/api/webinar", webinarRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/brochure", brochureRoutes);
+app.use("/api/book-preview", bookPreviewRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ success: false, error: "Not found" });

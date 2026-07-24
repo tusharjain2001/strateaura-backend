@@ -151,6 +151,37 @@ function brochureUserMail(v) {
   );
 }
 
+/* ---------------------------------------------------------- book preview */
+
+function bookPreviewTeamMail(v) {
+  return shell(
+    "New book preview request",
+    rows([
+      ["Name", v.fullName],
+      ["Email", v.email],
+      ["Book", v.book],
+      ["Submitted", new Date().toUTCString()],
+    ])
+  );
+}
+
+function bookPreviewUserMail(v) {
+  return shell(
+    "Your preview chapter is on its way",
+    paragraph(`Hi ${escapeHtml(v.fullName)},`) +
+      paragraph(
+        "Thank you for your interest. We have received your request and a member of our team will email your preview chapter shortly."
+      ) +
+      (v.book
+        ? paragraph(`You requested a preview of: <strong style="color:${NAVY}">${escapeHtml(v.book)}</strong>`)
+        : "") +
+      button("Explore our insights", `${SITE}/insights`) +
+      paragraph(
+        `<br />Warmly,<br /><strong style="color:${NAVY}">Dr. Suhair Hamouri</strong><br />StrateAura™`
+      )
+  );
+}
+
 module.exports = {
   webinarTeamMail,
   webinarUserMail,
@@ -158,4 +189,6 @@ module.exports = {
   contactUserMail,
   brochureTeamMail,
   brochureUserMail,
+  bookPreviewTeamMail,
+  bookPreviewUserMail,
 };
