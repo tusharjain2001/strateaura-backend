@@ -6,6 +6,13 @@ const NAVY = "#233a58";
 const INK = "#4b5563";
 const SITE = process.env.SITE_URL || "https://strateaura.com";
 
+// Where the confirmation emails load their branded images from (wordmark,
+// headings, button — rendered as PNGs so iOS Mail can't wash out the colours).
+// Served by the backend's /email-assets static route; override per-env.
+const ASSET_BASE =
+  process.env.EMAIL_ASSET_BASE ||
+  "https://strateaura-backend.vercel.app/email-assets";
+
 function shell(title, bodyHtml) {
   return `
   <div style="margin:0;padding:24px;background:#f5f5f5;font-family:Helvetica,Arial,sans-serif">
@@ -144,20 +151,56 @@ function brochureUrl() {
   );
 }
 
+// Full-document wrapper so iOS Mail honours color-scheme (keeps the light card
+// from being dark-mode-inverted) and images sit on a neutral page background.
+function emailDocument(title, bodyHtml) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<meta name="supported-color-schemes" content="light" />
+<title>${escapeHtml(title)}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f1ea">${bodyHtml}</body>
+</html>`;
+}
+
+// A full-bleed email image (used for the sliced brochure bands). Width is fixed
+// at the card size but scales down on narrow phones via max-width:100%.
+function bandImage(file, alt) {
+  return `<img src="${ASSET_BASE}/${file}" alt="${escapeHtml(alt)}" width="650" style="display:block;width:100%;max-width:650px;height:auto;border:0;outline:none;text-decoration:none" />`;
+}
+
+/**
+ * Figma 1816:2226 — the "Your StrateAura Brochure is Ready!" email. Fully
+ * static (no personalisation), so every word is baked into three stacked PNG
+ * bands: text → button → text. Rendering the text as images means iOS Mail
+ * can't fade the gold/branded colours. Only the middle band is a link (wraps
+ * the "Download Brochure" pill and points at the PDF); `v` is unused.
+ */
 function brochureUserMail(v) {
-  return shell(
-    "Your brochure is here",
-    paragraph(`Hi ${escapeHtml(v.fullName)},`) +
-      paragraph(
-        "Thank you for your interest in StrateAura. Your brochure is attached to this email — if you don't see the attachment, you can also download it with the button below."
-      ) +
-      (v.program
-        ? paragraph(`You requested the brochure for: <strong style="color:${NAVY}">${escapeHtml(v.program)}</strong>`)
-        : "") +
-      button("Download Brochure", brochureUrl()) +
-      paragraph(
-        `<br />Warmly,<br /><strong style="color:${NAVY}">Dr. Suhair Hamouri</strong><br />StrateAura™`
-      )
+  const url = brochureUrl();
+  return emailDocument(
+    "Your StrateAura Brochure is Ready",
+    `
+  <div style="margin:0;padding:24px;background:#f4f1ea">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="650" align="center" style="max-width:650px;margin:0 auto;border-collapse:collapse">
+      <tr><td style="font-size:0;line-height:0">${bandImage(
+        "brochure-top.png",
+        "Your StrateAura Brochure is Ready! Thank you for requesting the StrateAura brochure. We're pleased to share it with you. Inside, you'll find an overview of our offerings, approach, and the value we bring to our clients. Click the button below to download your brochure."
+      )}</td></tr>
+      <tr><td style="font-size:0;line-height:0"><a href="${url}" target="_blank" style="display:block;text-decoration:none">${bandImage(
+        "brochure-button.png",
+        "Download Brochure"
+      )}</a></td></tr>
+      <tr><td style="font-size:0;line-height:0">${bandImage(
+        "brochure-bottom.png",
+        "If you have any questions or would like to learn more, feel free to reply to this email, we'd be happy to help. Best regards, The StrateAura Team"
+      )}</td></tr>
+    </table>
+  </div>`
   );
 }
 
@@ -186,49 +229,48 @@ function previewChapterUrl() {
 }
 
 /**
- * Figma 1816:1799 — the "Your Preview Chapter is Ready!" email the visitor
- * receives, with a gold "Download Preview Chapter" pill linking to the PDF.
- * Bespoke markup (not the generic shell) so it matches the design: a soft
- * gold→white gradient card, right-aligned wordmark, no gold header bar.
+ * Figma 1816:1799 — the "Your Preview Chapter is Ready!" email. The visitor is
+ * greeted by name, so the greeting/body paragraph stays as live text; the
+ * fade-prone branded pieces (gold wordmark, gold heading, the gold pill button)
+ * are baked into transparent PNGs served from /email-assets so iOS Mail can't
+ * wash out their colour. They sit on the same soft cream→white gradient the
+ * design uses, drawn here as a CSS gradient (with a solid cream fallback). Only
+ * the button image is a link, pointing at the preview-chapter PDF.
  */
 function bookPreviewUserMail(v) {
   const name = escapeHtml(v.fullName || "there");
   const url = previewChapterUrl();
-  const CREAM = "#fff9e8";
   const BODY = "#3d3b36";
-  const MUTED = "#807c71";
-  return `
-  <div style="margin:0;padding:24px;background:#f4f1ea;font-family:Helvetica,Arial,sans-serif">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background:#fdeecb;background:linear-gradient(180deg,#fdeecb 0%,#ffffff 55%);border-radius:16px;border:1px solid #f2e6c4">
-      <tr>
-        <td style="padding:28px 40px 0;text-align:right">
-          <div style="color:${GOLD};font-size:20px;font-weight:bold;letter-spacing:1px">STRATEAURA</div>
-          <div style="color:${GOLD};opacity:.75;font-size:9px;letter-spacing:1.5px">PRESENCE BY DESIGN. POWER BY DEFAULT</div>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:22px 40px 8px">
-          <p style="margin:0 0 22px;color:${GOLD};font-size:20px;font-weight:bold;line-height:1.2">Your Preview Chapter is Ready!</p>
-          <p style="margin:0 0 14px;color:${BODY};font-size:16px;line-height:1.5">Hi ${name},</p>
-          <p style="margin:0 0 24px;color:${BODY};font-size:16px;line-height:1.5">Thank you for your interest in StrateAura and for requesting a preview of our upcoming book. We're excited to share a complimentary preview chapter with you. We hope it gives you a glimpse into the ideas, insights, and perspectives explored throughout the book.</p>
-          <p style="margin:0 0 18px;color:${MUTED};font-size:16px;line-height:1.5">Your preview chapter is attached to this email — you can also access it any time with the button below.</p>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-            <td style="border-radius:100px;background:${GOLD}">
-              <a href="${url}" target="_blank" style="display:inline-block;padding:10px 12px 10px 20px;color:${CREAM};font-size:16px;font-weight:bold;text-decoration:none;white-space:nowrap">Download Preview Chapter<span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:${CREAM};color:${GOLD};font-size:13px;vertical-align:middle;margin-left:10px">&#10022;</span></a>
-            </td>
-          </tr></table>
-          <p style="margin:28px 0 0;color:${BODY};font-size:16px;line-height:1.6">Happy reading!</p>
-          <p style="margin:22px 0 0;color:${BODY};font-size:16px;line-height:1.6">Warm regards,<br /><strong>The StrateAura Team</strong></p>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:24px 40px 28px;color:#a9a290;font-size:11px;line-height:1.6">
-          StrateAura Management Development Training LLC · Iris Bay 2205-D90, Business Bay, Dubai, U.A.E<br />
-          <a href="${SITE}" style="color:${GOLD};text-decoration:none">${escapeHtml(SITE.replace(/^https?:\/\//, ""))}</a>
-        </td>
-      </tr>
+  const MUTED = "#8a8577";
+  const font = "font-family:Helvetica,Arial,sans-serif";
+  return emailDocument(
+    "Your Preview Chapter is Ready",
+    `
+  <div style="margin:0;padding:24px;background:#f4f1ea;${font}">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="650" align="center" style="max-width:650px;margin:0 auto;border-collapse:collapse;border-radius:16px;background-color:#fff9ec;background-image:linear-gradient(180deg,#fff5da 0%,#ffffff 100%)">
+      <tr><td style="padding:33px 54px 0;text-align:right">
+        <img src="${ASSET_BASE}/preview-logo.png" alt="StrateAura — Presence by design. Power by default." width="177" style="display:inline-block;width:177px;max-width:60%;height:auto;border:0" />
+      </td></tr>
+      <tr><td style="padding:50px 54px 0">
+        <img src="${ASSET_BASE}/preview-heading.png" alt="Your Preview Chapter is Ready!" width="285" style="display:block;width:285px;max-width:100%;height:auto;border:0" />
+      </td></tr>
+      <tr><td style="padding:28px 54px 0;color:${BODY};font-size:16px;line-height:1.55;${font}">
+        Hi ${name},<br /><br />Thank you for your interest in StrateAura and for requesting a preview of our upcoming book. We're excited to share a complimentary preview chapter with you. We hope it gives you a glimpse into the ideas, insights, and perspectives explored throughout the book.
+      </td></tr>
+      <tr><td style="padding:24px 54px 0;color:${MUTED};font-size:16px;line-height:1.5;${font}">
+        Click the button below to access your preview chapter.
+      </td></tr>
+      <tr><td style="padding:18px 54px 0">
+        <a href="${url}" target="_blank" style="display:inline-block;text-decoration:none">
+          <img src="${ASSET_BASE}/preview-button.png" alt="Download Preview Chapter" width="253" style="display:block;width:253px;max-width:100%;height:auto;border:0" />
+        </a>
+      </td></tr>
+      <tr><td style="padding:26px 54px 48px;color:${BODY};font-size:16px;line-height:1.6;${font}">
+        Happy reading!<br /><br />Warm regards,<br /><strong>The StrateAura Team</strong>
+      </td></tr>
     </table>
-  </div>`;
+  </div>`
+  );
 }
 
 module.exports = {

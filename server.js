@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const { verifyTransport } = require("./src/mailer");
 const webinarRoutes = require("./src/routes/webinar");
 const contactRoutes = require("./src/routes/contact");
@@ -48,6 +49,19 @@ app.use(
   })
 );
 app.use(express.json({ limit: "100kb" }));
+
+// Static images referenced by the HTML confirmation emails. The brochure and
+// book-preview mails render their branded text (wordmark, headings, button) as
+// images so iOS Mail can't wash out the colours — those PNGs are served from
+// here. Purely additive: no form endpoint, validation, or mail flow touched.
+// (vercel.json already ships assets/** with the function via includeFiles.)
+app.use(
+  "/email-assets",
+  express.static(path.join(__dirname, "assets", "email"), {
+    maxAge: "30d",
+    immutable: true,
+  })
+);
 
 app.get("/api/health", async (req, res) => {
   // `allowedOrigins`/`callerAllowed` echo what the server actually parsed, so a
