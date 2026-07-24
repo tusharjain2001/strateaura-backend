@@ -120,9 +120,42 @@ function contactUserMail(v) {
   );
 }
 
+/* --------------------------------------------------------------- brochure */
+
+function brochureTeamMail(v) {
+  return shell(
+    "New brochure request",
+    rows([
+      ["Name", v.fullName],
+      ["Email", v.email],
+      ["Brochure requested", v.program],
+      ["Submitted", new Date().toUTCString()],
+    ])
+  );
+}
+
+function brochureUserMail(v) {
+  return shell(
+    "Your brochure is on its way",
+    paragraph(`Hi ${escapeHtml(v.fullName)},`) +
+      paragraph(
+        "Thank you for your interest in StrateAura. We have received your request and a member of our team will email your brochure shortly."
+      ) +
+      (v.program
+        ? paragraph(`You requested the brochure for: <strong style="color:${NAVY}">${escapeHtml(v.program)}</strong>`)
+        : "") +
+      button("Explore our programs", `${SITE}/programs`) +
+      paragraph(
+        `<br />Warmly,<br /><strong style="color:${NAVY}">Dr. Suhair Hamouri</strong><br />StrateAura™`
+      )
+  );
+}
+
 module.exports = {
   webinarTeamMail,
   webinarUserMail,
   contactTeamMail,
   contactUserMail,
+  brochureTeamMail,
+  brochureUserMail,
 };

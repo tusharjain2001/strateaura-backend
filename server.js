@@ -4,6 +4,7 @@ const cors = require("cors");
 const { verifyTransport } = require("./src/mailer");
 const webinarRoutes = require("./src/routes/webinar");
 const contactRoutes = require("./src/routes/contact");
+const brochureRoutes = require("./src/routes/brochure");
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.get("/api/health", async (req, res) => {
 
 app.use("/api/webinar", webinarRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/brochure", brochureRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ success: false, error: "Not found" });
