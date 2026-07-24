@@ -42,7 +42,7 @@ router.post("/", rateLimit({ max: 5 }), async (req, res, next) => {
   try {
     await sendMail({
       to: values.email,
-      subject: "Your StrateAura brochure request",
+      subject: "Thanks for requesting the brochure — StrateAura",
       html: brochureUserMail(values),
     });
   } catch (error) {

@@ -40,7 +40,7 @@ router.post("/", rateLimit({ max: 5 }), async (req, res, next) => {
   try {
     await sendMail({
       to: values.email,
-      subject: "Your StrateAura book preview request",
+      subject: "Thanks for requesting the book — StrateAura",
       html: bookPreviewUserMail(values),
     });
   } catch (error) {

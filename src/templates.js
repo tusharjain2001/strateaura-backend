@@ -136,10 +136,10 @@ function brochureTeamMail(v) {
 
 function brochureUserMail(v) {
   return shell(
-    "Your brochure is on its way",
+    "Thanks for requesting the brochure",
     paragraph(`Hi ${escapeHtml(v.fullName)},`) +
       paragraph(
-        "Thank you for your interest in StrateAura. We have received your request and a member of our team will email your brochure shortly."
+        "Thank you for requesting the brochure. We have received your request and a member of our team will email the brochure to you shortly."
       ) +
       (v.program
         ? paragraph(`You requested the brochure for: <strong style="color:${NAVY}">${escapeHtml(v.program)}</strong>`)
@@ -167,10 +167,10 @@ function bookPreviewTeamMail(v) {
 
 function bookPreviewUserMail(v) {
   return shell(
-    "Your preview chapter is on its way",
+    "Thanks for requesting the book",
     paragraph(`Hi ${escapeHtml(v.fullName)},`) +
       paragraph(
-        "Thank you for your interest. We have received your request and a member of our team will email your preview chapter shortly."
+        "Thank you for requesting the book preview. We have received your request and a member of our team will email your preview chapter shortly."
       ) +
       (v.book
         ? paragraph(`You requested a preview of: <strong style="color:${NAVY}">${escapeHtml(v.book)}</strong>`)
