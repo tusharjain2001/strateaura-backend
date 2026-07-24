@@ -165,21 +165,60 @@ function bookPreviewTeamMail(v) {
   );
 }
 
-function bookPreviewUserMail(v) {
-  return shell(
-    "Thanks for requesting the book",
-    paragraph(`Hi ${escapeHtml(v.fullName)},`) +
-      paragraph(
-        "Thank you for requesting the book preview. We have received your request and a member of our team will email your preview chapter shortly."
-      ) +
-      (v.book
-        ? paragraph(`You requested a preview of: <strong style="color:${NAVY}">${escapeHtml(v.book)}</strong>`)
-        : "") +
-      button("Explore our insights", `${SITE}/insights`) +
-      paragraph(
-        `<br />Warmly,<br /><strong style="color:${NAVY}">Dr. Suhair Hamouri</strong><br />StrateAura™`
-      )
+// Public URL the "Download Preview Chapter" button points to. Defaults to the
+// backend's own download route (which streams assets/<PREVIEW_CHAPTER_FILE>);
+// override with any hosted PDF URL via PREVIEW_CHAPTER_URL.
+function previewChapterUrl() {
+  return (
+    process.env.PREVIEW_CHAPTER_URL ||
+    "https://strateaura-backend.vercel.app/api/book-preview/download"
   );
+}
+
+/**
+ * Figma 1816:1799 — the "Your Preview Chapter is Ready!" email the visitor
+ * receives, with a gold "Download Preview Chapter" pill linking to the PDF.
+ * Bespoke markup (not the generic shell) so it matches the design: a soft
+ * gold→white gradient card, right-aligned wordmark, no gold header bar.
+ */
+function bookPreviewUserMail(v) {
+  const name = escapeHtml(v.fullName || "there");
+  const url = previewChapterUrl();
+  const CREAM = "#fff9e8";
+  const BODY = "#3d3b36";
+  const MUTED = "#807c71";
+  return `
+  <div style="margin:0;padding:24px;background:#f4f1ea;font-family:Helvetica,Arial,sans-serif">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;margin:0 auto;background:#fdeecb;background:linear-gradient(180deg,#fdeecb 0%,#ffffff 55%);border-radius:16px;border:1px solid #f2e6c4">
+      <tr>
+        <td style="padding:28px 40px 0;text-align:right">
+          <div style="color:${GOLD};font-size:20px;font-weight:bold;letter-spacing:1px">STRATEAURA</div>
+          <div style="color:${GOLD};opacity:.75;font-size:9px;letter-spacing:1.5px">PRESENCE BY DESIGN. POWER BY DEFAULT</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:22px 40px 8px">
+          <p style="margin:0 0 22px;color:${GOLD};font-size:20px;font-weight:bold;line-height:1.2">Your Preview Chapter is Ready!</p>
+          <p style="margin:0 0 14px;color:${BODY};font-size:16px;line-height:1.5">Hi ${name},</p>
+          <p style="margin:0 0 24px;color:${BODY};font-size:16px;line-height:1.5">Thank you for your interest in StrateAura and for requesting a preview of our upcoming book. We're excited to share a complimentary preview chapter with you. We hope it gives you a glimpse into the ideas, insights, and perspectives explored throughout the book.</p>
+          <p style="margin:0 0 18px;color:${MUTED};font-size:16px;line-height:1.5">Click the button below to access your preview chapter.</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="border-radius:100px;background:${GOLD}">
+              <a href="${url}" target="_blank" style="display:inline-block;padding:10px 12px 10px 20px;color:${CREAM};font-size:16px;font-weight:bold;text-decoration:none;white-space:nowrap">Download Preview Chapter<span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:${CREAM};color:${GOLD};font-size:13px;vertical-align:middle;margin-left:10px">&#10022;</span></a>
+            </td>
+          </tr></table>
+          <p style="margin:28px 0 0;color:${BODY};font-size:16px;line-height:1.6">Happy reading!</p>
+          <p style="margin:22px 0 0;color:${BODY};font-size:16px;line-height:1.6">Warm regards,<br /><strong>The StrateAura Team</strong></p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:24px 40px 28px;color:#a9a290;font-size:11px;line-height:1.6">
+          StrateAura Management Development Training LLC · Iris Bay 2205-D90, Business Bay, Dubai, U.A.E<br />
+          <a href="${SITE}" style="color:${GOLD};text-decoration:none">${escapeHtml(SITE.replace(/^https?:\/\//, ""))}</a>
+        </td>
+      </tr>
+    </table>
+  </div>`;
 }
 
 module.exports = {
