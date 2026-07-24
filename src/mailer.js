@@ -43,8 +43,8 @@ function notifyAddress() {
   return process.env.NOTIFY_EMAIL || process.env.MAIL_FROM_ADDRESS || process.env.SMTP_USER;
 }
 
-async function sendMail({ to, subject, html, replyTo }) {
-  const info = await transport.sendMail({ from: fromAddress(), to, subject, html, replyTo });
+async function sendMail({ to, subject, html, replyTo, attachments }) {
+  const info = await transport.sendMail({ from: fromAddress(), to, subject, html, replyTo, attachments });
   // Logged so the Vercel logs show what the SMTP server actually accepted —
   // "the API returned success" is not on its own evidence that mail was sent.
   console.log(`[mail] to=${to} accepted=${info.accepted?.join(",") || "none"} id=${info.messageId}`);

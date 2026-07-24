@@ -18,14 +18,21 @@ const ASSETS_DIR = path.join(__dirname, "..", "..", "assets");
 // assets/ — so saving any PDF there "just works" without touching .env.
 function resolveChapterPath() {
   if (process.env.PREVIEW_CHAPTER_FILE) {
-    return path.join(ASSETS_DIR, process.env.PREVIEW_CHAPTER_FILE);
+    const explicit = path.join(ASSETS_DIR, process.env.PREVIEW_CHAPTER_FILE);
+    if (fs.existsSync(explicit)) return explicit;
+    // A stale env var (pointing at a renamed/removed file) shouldn't take the
+    // route down when a usable PDF is sitting in assets/.
+    console.warn(`[book-preview] PREVIEW_CHAPTER_FILE not found: ${explicit} — falling back`);
   }
   const preferred = path.join(ASSETS_DIR, "preview-chapter.pdf");
   if (fs.existsSync(preferred)) return preferred;
   try {
-    const pdf = fs
-      .readdirSync(ASSETS_DIR)
-      .find((f) => f.toLowerCase().endsWith(".pdf"));
+    // assets/ also holds the brochure, so "any .pdf" is ambiguous — prefer a
+    // name that says "preview", and never fall back to the brochure.
+    const pdfs = fs.readdirSync(ASSETS_DIR).filter((f) => f.toLowerCase().endsWith(".pdf"));
+    const pdf =
+      pdfs.find((f) => f.toLowerCase().includes("preview")) ||
+      pdfs.find((f) => !f.toLowerCase().includes("brochure"));
     if (pdf) return path.join(ASSETS_DIR, pdf);
   } catch {
     /* assets/ missing — fall through to the 404 */
@@ -86,12 +93,22 @@ router.post("/", rateLimit({ max: 5 }), async (req, res, next) => {
     return next(error);
   }
 
-  // Confirmation to the visitor is best-effort.
+  // Confirmation to the visitor is best-effort. The preview chapter rides along
+  // as an attachment; if the PDF is somehow missing the mail still goes out with
+  // just the download button (which 404s gracefully).
+  const chapterPath = resolveChapterPath();
+  const attachments = fs.existsSync(chapterPath)
+    ? [{ filename: "StrateAura-Preview-Chapter.pdf", path: chapterPath }]
+    : [];
+  if (!attachments.length) {
+    console.error("[book-preview] preview PDF missing from assets/ — sending confirmation without attachment");
+  }
   try {
     await sendMail({
       to: values.email,
-      subject: "Thanks for requesting the book — StrateAura",
+      subject: "Your Preview Chapter is Ready! — StrateAura",
       html: bookPreviewUserMail(values),
+      attachments,
     });
   } catch (error) {
     console.error("[book-preview] confirmation email failed:", error.message);

@@ -1,20 +1,17 @@
 # assets/
 
-Static files served by the backend.
+Static files served by the backend. Two PDFs live here:
 
-## Preview chapter PDF
+| File                  | Sent by                                             | Route                          |
+| --------------------- | --------------------------------------------------- | ------------------------------ |
+| `preview-chapter.pdf` | book-preview confirmation email (attached + button) | `GET /api/book-preview/download` |
+| `veil-brochure.pdf`   | brochure confirmation email (attached + button)     | `GET /api/brochure/download`   |
 
-Just drop the book's preview chapter PDF in this folder — any filename works.
-The download route serves it automatically (it picks an explicit
-`PREVIEW_CHAPTER_FILE`, else `preview-chapter.pdf`, else the first `.pdf` here).
+To swap either PDF, just replace the file (keep the name), or set
+`PREVIEW_CHAPTER_FILE` / `BROCHURE_FILE` to point at a different filename.
 
-Served by `GET /api/book-preview/download`:
-
-- inline (previews in the browser's PDF viewer): `/api/book-preview/download`
-- forced download: `/api/book-preview/download?download=1`
-
-The "Download Preview Chapter" button in the book-preview confirmation email
-links here (via `PREVIEW_CHAPTER_URL`, which already defaults to this route).
+Both download routes serve inline (previews in the browser's PDF viewer); add
+`?download=1` to force a save-as instead.
 
 On Vercel this folder ships with the function via the `includeFiles: "assets/**"`
-config in `vercel.json` — keep the PDF committed to the repo.
+config in `vercel.json` — keep the PDFs committed to the repo.

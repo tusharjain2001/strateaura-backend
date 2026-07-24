@@ -4,7 +4,7 @@
     {
       "src": "server.js",
       "use": "@vercel/node",
-      "config": { "includeFiles": "assets/**" }
+      "config": { "includeFiles": "assets/**", "maxDuration": 60 }
     }
   ],
   "routes": [

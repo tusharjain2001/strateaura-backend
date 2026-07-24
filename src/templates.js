@@ -134,17 +134,27 @@ function brochureTeamMail(v) {
   );
 }
 
+// Public URL the brochure mail's download button points to. Defaults to the
+// backend's own download route (which streams assets/<BROCHURE_FILE>);
+// override with any hosted PDF URL via BROCHURE_URL.
+function brochureUrl() {
+  return (
+    process.env.BROCHURE_URL ||
+    "https://strateaura-backend.vercel.app/api/brochure/download"
+  );
+}
+
 function brochureUserMail(v) {
   return shell(
-    "Thanks for requesting the brochure",
+    "Your brochure is here",
     paragraph(`Hi ${escapeHtml(v.fullName)},`) +
       paragraph(
-        "Thank you for requesting the brochure. We have received your request and a member of our team will email the brochure to you shortly."
+        "Thank you for your interest in StrateAura. Your brochure is attached to this email — if you don't see the attachment, you can also download it with the button below."
       ) +
       (v.program
         ? paragraph(`You requested the brochure for: <strong style="color:${NAVY}">${escapeHtml(v.program)}</strong>`)
         : "") +
-      button("Explore our programs", `${SITE}/programs`) +
+      button("Download Brochure", brochureUrl()) +
       paragraph(
         `<br />Warmly,<br /><strong style="color:${NAVY}">Dr. Suhair Hamouri</strong><br />StrateAura™`
       )
@@ -201,7 +211,7 @@ function bookPreviewUserMail(v) {
           <p style="margin:0 0 22px;color:${GOLD};font-size:20px;font-weight:bold;line-height:1.2">Your Preview Chapter is Ready!</p>
           <p style="margin:0 0 14px;color:${BODY};font-size:16px;line-height:1.5">Hi ${name},</p>
           <p style="margin:0 0 24px;color:${BODY};font-size:16px;line-height:1.5">Thank you for your interest in StrateAura and for requesting a preview of our upcoming book. We're excited to share a complimentary preview chapter with you. We hope it gives you a glimpse into the ideas, insights, and perspectives explored throughout the book.</p>
-          <p style="margin:0 0 18px;color:${MUTED};font-size:16px;line-height:1.5">Click the button below to access your preview chapter.</p>
+          <p style="margin:0 0 18px;color:${MUTED};font-size:16px;line-height:1.5">Your preview chapter is attached to this email — you can also access it any time with the button below.</p>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
             <td style="border-radius:100px;background:${GOLD}">
               <a href="${url}" target="_blank" style="display:inline-block;padding:10px 12px 10px 20px;color:${CREAM};font-size:16px;font-weight:bold;text-decoration:none;white-space:nowrap">Download Preview Chapter<span style="display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:${CREAM};color:${GOLD};font-size:13px;vertical-align:middle;margin-left:10px">&#10022;</span></a>
