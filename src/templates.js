@@ -153,6 +153,8 @@ function brochureUrl() {
 
 // Full-document wrapper so iOS Mail honours color-scheme (keeps the light card
 // from being dark-mode-inverted) and images sit on a neutral page background.
+// The <style> block only carries the mobile media query — everything else is
+// inline because Gmail and Outlook strip most embedded CSS.
 function emailDocument(title, bodyHtml) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -162,52 +164,78 @@ function emailDocument(title, bodyHtml) {
 <meta name="color-scheme" content="light" />
 <meta name="supported-color-schemes" content="light" />
 <title>${escapeHtml(title)}</title>
+<style>
+  @media only screen and (max-width: 480px) {
+    .sa-px { padding-left: 24px !important; padding-right: 24px !important; }
+    .sa-logo { padding-right: 24px !important; }
+  }
+</style>
 </head>
 <body style="margin:0;padding:0;background:#f4f1ea">${bodyHtml}</body>
 </html>`;
 }
 
 /**
- * Figma 1816:2226 — the "Your StrateAura Brochure is Ready!" email. Same hybrid
- * build as the preview mail: the fade-prone gold pieces (wordmark, heading,
- * button pill) are PNGs served from /email-assets so iOS Mail can't wash out
- * their colour, while the body copy stays as live text — which keeps the email
- * from being an all-image message (a spam signal) and lets it read fine even
- * before images load. Only the button image links to the PDF; `v` is unused.
+ * Shared card for the brochure (Figma 1816:2226) and book-preview (1816:1799)
+ * confirmation mails — the two designs are the same 650px rounded card with a
+ * #ffdf85→white 30% gradient (flattened over the white card: #fff5da→#ffffff,
+ * pixel-sampled from the Figma render), differing only in content.
+ *
+ * Hybrid build: the gold pieces (wordmark, heading, button pill) are 4x Figma
+ * PNG exports served from /email-assets — they carry the real Acumin Pro
+ * typography and iOS Mail can't wash out their colour — while body copy stays
+ * live text, which keeps the mail from being all-image (a spam signal) and
+ * readable before images load. Body text uses the exact Figma geometry: content
+ * column x=59/width=535 (right gutter 56), logo 177px at top 33/right 37,
+ * heading at y=113, 16px/19px type (Acumin's "normal" leading ≈1.19 — NOT 1.5),
+ * gaps 29/24/18/24, bottom padding 64 → the Figma card's 553px total.
+ * `?v=2` on the images busts the 30-day immutable cache from the v1 assets.
  */
-function brochureUserMail(v) {
-  const url = brochureUrl();
+function figmaCardMail({ title, headingImg, headingW, bodyHtml, mutedLine, buttonImg, buttonW, buttonAlt, url, closingHtml }) {
   const BODY = "#3d3b36";
-  const MUTED = "#8a8577";
+  const MUTED = "#807c71";
   const font = "font-family:Helvetica,Arial,sans-serif";
+  const text = `font-size:16px;line-height:19px;${font}`;
   return emailDocument(
-    "Your StrateAura Brochure is Ready",
+    title,
     `
   <div style="margin:0;padding:24px;background:#f4f1ea;${font}">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="650" align="center" style="max-width:650px;margin:0 auto;border-collapse:collapse;border-radius:16px;background-color:#fff9ec;background-image:linear-gradient(180deg,#fff5da 0%,#ffffff 100%)">
-      <tr><td style="padding:33px 54px 0;text-align:right">
-        <img src="${ASSET_BASE}/preview-logo.png" alt="StrateAura — Presence by design. Power by default." width="177" style="display:inline-block;width:177px;max-width:60%;height:auto;border:0" />
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="650" align="center" style="width:100%;max-width:650px;margin:0 auto;border-collapse:collapse;border-radius:16px;background-color:#fff9ec;background-image:linear-gradient(180deg,#fff5da 0%,#ffffff 100%)">
+      <tr><td class="sa-logo" style="padding:33px 37px 0 0;text-align:right;font-size:0;line-height:0">
+        <img src="${ASSET_BASE}/preview-logo.png?v=2" alt="StrateAura — Presence by design. Power by default." width="177" style="display:inline-block;width:177px;max-width:60%;height:auto;border:0" />
       </td></tr>
-      <tr><td style="padding:50px 54px 0">
-        <img src="${ASSET_BASE}/brochure-heading.png" alt="Your StrateAura Brochure is Ready!" width="320" style="display:block;width:320px;max-width:100%;height:auto;border:0" />
+      <tr><td class="sa-px" style="padding:51px 56px 0 59px">
+        <img src="${ASSET_BASE}/${headingImg}?v=2" alt="${escapeHtml(title)}" width="${headingW}" style="display:block;width:${headingW}px;max-width:100%;height:auto;border:0" />
       </td></tr>
-      <tr><td style="padding:28px 54px 0;color:${BODY};font-size:16px;line-height:1.55;${font}">
-        Thank you for requesting the StrateAura brochure.<br /><br />We're pleased to share it with you. Inside, you'll find an overview of our offerings, approach, and the value we bring to our clients.
-      </td></tr>
-      <tr><td style="padding:24px 54px 0;color:${MUTED};font-size:16px;line-height:1.5;${font}">
-        Click the button below to download your brochure.
-      </td></tr>
-      <tr><td style="padding:18px 54px 0">
+      <tr><td class="sa-px" style="padding:29px 56px 0 59px;color:${BODY};${text}">${bodyHtml}</td></tr>
+      <tr><td class="sa-px" style="padding:24px 56px 0 59px;color:${MUTED};${text}">${mutedLine}</td></tr>
+      <tr><td class="sa-px" style="padding:18px 56px 0 59px;font-size:0;line-height:0">
         <a href="${url}" target="_blank" style="display:inline-block;text-decoration:none">
-          <img src="${ASSET_BASE}/brochure-button-pill.png" alt="Download Brochure" width="200" style="display:block;width:200px;max-width:100%;height:auto;border:0" />
+          <img src="${ASSET_BASE}/${buttonImg}?v=2" alt="${escapeHtml(buttonAlt)}" width="${buttonW}" style="display:block;width:${buttonW}px;max-width:100%;height:auto;border:0" />
         </a>
       </td></tr>
-      <tr><td style="padding:26px 54px 48px;color:${BODY};font-size:16px;line-height:1.6;${font}">
-        If you have any questions or would like to learn more, feel free to reply to this email, we'd be happy to help.<br /><br />Best regards,<br /><strong>The StrateAura Team</strong>
-      </td></tr>
+      <tr><td class="sa-px" style="padding:24px 56px 64px 59px;color:${BODY};${text}">${closingHtml}</td></tr>
     </table>
   </div>`
   );
+}
+
+/** Figma 1816:2226 — "Your StrateAura Brochure is Ready!". `v` is unused. */
+function brochureUserMail() {
+  return figmaCardMail({
+    title: "Your StrateAura Brochure is Ready!",
+    headingImg: "brochure-heading.png",
+    headingW: 320,
+    bodyHtml:
+      "Thank you for requesting the StrateAura brochure.<br /><br />We're pleased to share it with you. Inside, you'll find an overview of our offerings, approach, and the value we bring to our clients.",
+    mutedLine: "Click the button below to download your brochure.",
+    buttonImg: "brochure-button-pill.png",
+    buttonW: 200,
+    buttonAlt: "Download Brochure",
+    url: brochureUrl(),
+    closingHtml:
+      "If you have any questions or would like to learn more, feel free to reply to this email, we'd be happy to help.<br /><br /><br />Best regards,<br /><strong>The StrateAura Team</strong>",
+  });
 }
 
 /* ---------------------------------------------------------- book preview */
@@ -234,49 +262,22 @@ function previewChapterUrl() {
   );
 }
 
-/**
- * Figma 1816:1799 — the "Your Preview Chapter is Ready!" email. The visitor is
- * greeted by name, so the greeting/body paragraph stays as live text; the
- * fade-prone branded pieces (gold wordmark, gold heading, the gold pill button)
- * are baked into transparent PNGs served from /email-assets so iOS Mail can't
- * wash out their colour. They sit on the same soft cream→white gradient the
- * design uses, drawn here as a CSS gradient (with a solid cream fallback). Only
- * the button image is a link, pointing at the preview-chapter PDF.
- */
+/** Figma 1816:1799 — "Your Preview Chapter is Ready!", greets by name. */
 function bookPreviewUserMail(v) {
   const name = escapeHtml(v.fullName || "there");
-  const url = previewChapterUrl();
-  const BODY = "#3d3b36";
-  const MUTED = "#8a8577";
-  const font = "font-family:Helvetica,Arial,sans-serif";
-  return emailDocument(
-    "Your Preview Chapter is Ready",
-    `
-  <div style="margin:0;padding:24px;background:#f4f1ea;${font}">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="650" align="center" style="max-width:650px;margin:0 auto;border-collapse:collapse;border-radius:16px;background-color:#fff9ec;background-image:linear-gradient(180deg,#fff5da 0%,#ffffff 100%)">
-      <tr><td style="padding:33px 54px 0;text-align:right">
-        <img src="${ASSET_BASE}/preview-logo.png" alt="StrateAura — Presence by design. Power by default." width="177" style="display:inline-block;width:177px;max-width:60%;height:auto;border:0" />
-      </td></tr>
-      <tr><td style="padding:50px 54px 0">
-        <img src="${ASSET_BASE}/preview-heading.png" alt="Your Preview Chapter is Ready!" width="285" style="display:block;width:285px;max-width:100%;height:auto;border:0" />
-      </td></tr>
-      <tr><td style="padding:28px 54px 0;color:${BODY};font-size:16px;line-height:1.55;${font}">
-        Hi ${name},<br /><br />Thank you for your interest in StrateAura and for requesting a preview of our upcoming book. We're excited to share a complimentary preview chapter with you. We hope it gives you a glimpse into the ideas, insights, and perspectives explored throughout the book.
-      </td></tr>
-      <tr><td style="padding:24px 54px 0;color:${MUTED};font-size:16px;line-height:1.5;${font}">
-        Click the button below to access your preview chapter.
-      </td></tr>
-      <tr><td style="padding:18px 54px 0">
-        <a href="${url}" target="_blank" style="display:inline-block;text-decoration:none">
-          <img src="${ASSET_BASE}/preview-button.png" alt="Download Preview Chapter" width="253" style="display:block;width:253px;max-width:100%;height:auto;border:0" />
-        </a>
-      </td></tr>
-      <tr><td style="padding:26px 54px 48px;color:${BODY};font-size:16px;line-height:1.6;${font}">
-        Happy reading!<br /><br />Warm regards,<br /><strong>The StrateAura Team</strong>
-      </td></tr>
-    </table>
-  </div>`
-  );
+  return figmaCardMail({
+    title: "Your Preview Chapter is Ready!",
+    headingImg: "preview-heading.png",
+    headingW: 285,
+    bodyHtml: `Hi ${name},<br /><br />Thank you for your interest in StrateAura and for requesting a preview of our upcoming book. We're excited to share a complimentary preview chapter with you. We hope it gives you a glimpse into the ideas, insights, and perspectives explored throughout the book.`,
+    mutedLine: "Click the button below to access your preview chapter.",
+    buttonImg: "preview-button.png",
+    buttonW: 253,
+    buttonAlt: "Download Preview Chapter",
+    url: previewChapterUrl(),
+    closingHtml:
+      "Happy reading!<br /><br /><br />Warm regards,<br /><strong>The StrateAura Team</strong>",
+  });
 }
 
 module.exports = {
