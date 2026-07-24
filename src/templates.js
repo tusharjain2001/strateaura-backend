@@ -189,7 +189,7 @@ function emailDocument(title, bodyHtml) {
  * column x=59/width=535 (right gutter 56), logo 177px at top 33/right 37,
  * heading at y=113, 16px/19px type (Acumin's "normal" leading ≈1.19 — NOT 1.5),
  * gaps 29/24/18/24, bottom padding 64 → the Figma card's 553px total.
- * `?v=2` on the images busts the 30-day immutable cache from the v1 assets.
+ * `?v=3` on the images busts the 30-day immutable cache from the v1 assets.
  */
 function figmaCardMail({ title, headingImg, headingW, bodyHtml, mutedLine, buttonImg, buttonW, buttonAlt, url, closingHtml }) {
   const BODY = "#3d3b36";
@@ -202,16 +202,16 @@ function figmaCardMail({ title, headingImg, headingW, bodyHtml, mutedLine, butto
   <div style="margin:0;padding:24px;background:#f4f1ea;${font}">
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="650" align="center" style="width:100%;max-width:650px;margin:0 auto;border-collapse:collapse;border-radius:16px;background-color:#fff9ec;background-image:linear-gradient(180deg,#fff5da 0%,#ffffff 100%)">
       <tr><td class="sa-logo" style="padding:33px 37px 0 0;text-align:right;font-size:0;line-height:0">
-        <img src="${ASSET_BASE}/preview-logo.png?v=2" alt="StrateAura — Presence by design. Power by default." width="177" style="display:inline-block;width:177px;max-width:60%;height:auto;border:0" />
+        <img src="${ASSET_BASE}/preview-logo.png?v=3" alt="StrateAura — Presence by design. Power by default." width="177" style="display:inline-block;width:177px;max-width:60%;height:auto;border:0" />
       </td></tr>
       <tr><td class="sa-px" style="padding:51px 56px 0 59px">
-        <img src="${ASSET_BASE}/${headingImg}?v=2" alt="${escapeHtml(title)}" width="${headingW}" style="display:block;width:${headingW}px;max-width:100%;height:auto;border:0" />
+        <img src="${ASSET_BASE}/${headingImg}?v=3" alt="${escapeHtml(title)}" width="${headingW}" style="display:block;width:${headingW}px;max-width:100%;height:auto;border:0" />
       </td></tr>
       <tr><td class="sa-px" style="padding:29px 56px 0 59px;color:${BODY};${text}">${bodyHtml}</td></tr>
       <tr><td class="sa-px" style="padding:24px 56px 0 59px;color:${MUTED};${text}">${mutedLine}</td></tr>
       <tr><td class="sa-px" style="padding:18px 56px 0 59px;font-size:0;line-height:0">
         <a href="${url}" target="_blank" style="display:inline-block;text-decoration:none">
-          <img src="${ASSET_BASE}/${buttonImg}?v=2" alt="${escapeHtml(buttonAlt)}" width="${buttonW}" style="display:block;width:${buttonW}px;max-width:100%;height:auto;border:0" />
+          <img src="${ASSET_BASE}/${buttonImg}?v=3" alt="${escapeHtml(buttonAlt)}" width="${buttonW}" style="display:block;width:${buttonW}px;max-width:100%;height:auto;border:0" />
         </a>
       </td></tr>
       <tr><td class="sa-px" style="padding:24px 56px 64px 59px;color:${BODY};${text}">${closingHtml}</td></tr>
